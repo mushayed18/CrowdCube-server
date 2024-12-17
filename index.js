@@ -25,7 +25,9 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const campaignsCollection = client.db("CrowdcubeDB").collection("campaigns");
+    const campaignsCollection = client
+      .db("CrowdcubeDB")
+      .collection("campaigns");
 
     const usersCollection = client.db("CrowdcubeDB").collection("users");
 
@@ -36,37 +38,65 @@ async function run() {
     });
 
     app.get("/campaigns", async (req, res) => {
-      const cursor = campaignsCollection.find();  
-      const result = await cursor.toArray(); 
+      const cursor = campaignsCollection.find();
+      const result = await cursor.toArray();
       res.send(result);
     });
 
     app.get("/campaigns/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await campaignsCollection.findOne(query);
       res.send(result);
-    })
+    });
 
+    app.delete("/campaigns/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await campaignsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.put("/campaigns/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+
+      const updatedCampaigns = req.body;
+      const campaign = {
+        $set: {
+          thumbnail: updatedCampaigns.thumbnail,
+          title: updatedCampaigns.title,
+          type: updatedCampaigns.type,
+          description: updatedCampaigns.description,
+          minDonation: updatedCampaigns.minDonation,
+          deadline: updatedCampaigns.deadline,
+          email: updatedCampaigns.email,
+          name: updatedCampaigns.name,
+        }
+      };
+
+      const result = await campaignsCollection.updateOne(filter, campaign, options);
+      res.send(result);
+    });
 
     // user related api
-    app.post('/users', async (req, res) => {
+    app.post("/users", async (req, res) => {
       const newUser = req.body;
       const result = await usersCollection.insertOne(newUser);
       res.send(result);
-    })
+    });
 
-    app.get('/users', async (req, res) => {
+    app.get("/users", async (req, res) => {
       const cursor = usersCollection.find();
       const result = await cursor.toArray();
       res.send(result);
-    })
-
+    });
 
     // my campaign related api
     app.get("/my-campaigns/:email", async (req, res) => {
-      const email = req.params.email; 
-      const query = { email: email }; 
+      const email = req.params.email;
+      const query = { email: email };
       const result = await campaignsCollection.find(query).toArray();
       res.send(result);
     });
