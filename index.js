@@ -31,7 +31,6 @@ async function run() {
 
     app.post("/campaigns", async (req, res) => {
       const newCampaign = req.body;
-      console.log(newCampaign);
       const result = await campaignsCollection.insertOne(newCampaign);
       res.send(result);
     });
@@ -56,6 +55,21 @@ async function run() {
       const result = await usersCollection.insertOne(newUser);
       res.send(result);
     })
+
+    app.get('/users', async (req, res) => {
+      const cursor = usersCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+
+    // my campaign related api
+    app.get("/my-campaigns/:email", async (req, res) => {
+      const email = req.params.email; 
+      const query = { email: email }; 
+      const result = await campaignsCollection.find(query).toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
