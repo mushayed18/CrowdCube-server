@@ -31,6 +31,8 @@ async function run() {
 
     const usersCollection = client.db("CrowdcubeDB").collection("users");
 
+    const donationsCollection = client.db("CrowdcubeDB").collection("donations");
+
     app.post("/campaigns", async (req, res) => {
       const newCampaign = req.body;
       const result = await campaignsCollection.insertOne(newCampaign);
@@ -80,6 +82,7 @@ async function run() {
       res.send(result);
     });
 
+
     // user related api
     app.post("/users", async (req, res) => {
       const newUser = req.body;
@@ -98,6 +101,14 @@ async function run() {
       const email = req.params.email;
       const query = { email: email };
       const result = await campaignsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+
+    // my donations related api
+    app.post("/all-donations", async (req, res) => {
+      const newDonation = req.body;
+      const result = await donationsCollection.insertOne(newDonation);
       res.send(result);
     });
 
