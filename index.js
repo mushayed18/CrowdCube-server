@@ -31,10 +31,17 @@ async function run() {
 
     const usersCollection = client.db("CrowdcubeDB").collection("users");
 
-    const donationsCollection = client.db("CrowdcubeDB").collection("donations");
+    const donationsCollection = client
+      .db("CrowdcubeDB")
+      .collection("donations");
 
     app.post("/campaigns", async (req, res) => {
       const newCampaign = req.body;
+
+      if (typeof newCampaign.deadline === "string") {
+        newCampaign.deadline = new Date(newCampaign.deadline); 
+      }
+
       const result = await campaignsCollection.insertOne(newCampaign);
       res.send(result);
     });
@@ -65,6 +72,11 @@ async function run() {
       const options = { upsert: true };
 
       const updatedCampaigns = req.body;
+
+      if (typeof updatedCampaigns.deadline === "string") {
+        updatedCampaigns.deadline = new Date(updatedCampaigns.deadline); 
+      }
+
       const campaign = {
         $set: {
           thumbnail: updatedCampaigns.thumbnail,
@@ -75,13 +87,16 @@ async function run() {
           deadline: updatedCampaigns.deadline,
           email: updatedCampaigns.email,
           name: updatedCampaigns.name,
-        }
+        },
       };
 
-      const result = await campaignsCollection.updateOne(filter, campaign, options);
+      const result = await campaignsCollection.updateOne(
+        filter,
+        campaign,
+        options
+      );
       res.send(result);
     });
-
 
     // user related api
     app.post("/users", async (req, res) => {
@@ -104,12 +119,28 @@ async function run() {
       res.send(result);
     });
 
-
     // my donations related api
     app.post("/all-donations", async (req, res) => {
       const newDonation = req.body;
       const result = await donationsCollection.insertOne(newDonation);
       res.send(result);
+    });
+
+    app.get("/my-donations/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { donateEmail: email };
+      const result = await donationsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // api to fetch 6 running campaigns
+    app.get("/running-campaigns", async (req, res) => {
+      const currentDate = new Date();
+      const runningCampaigns = await campaignsCollection
+        .find({ deadline: { $gte: currentDate } })
+        .limit(6)
+        .toArray();
+      res.send(runningCampaigns);
     });
 
     // Send a ping to confirm a successful connection
