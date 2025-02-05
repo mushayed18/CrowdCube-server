@@ -133,7 +133,7 @@ async function run() {
       res.send(result);
     });
 
-    // api to fetch 6 running campaigns
+    // api to fetch six running campaigns
     app.get("/running-campaigns", async (req, res) => {
       const currentDate = new Date();
       const runningCampaigns = await campaignsCollection
